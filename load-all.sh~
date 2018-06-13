@@ -1,0 +1,5 @@
+#!/bin/sh
+
+java -jar target/nectar-configuration-loader-0.1-SNAPSHOT-jar-with-dependencies.jar -f /data/calibration-AstraS-depth.yaml -o "calibration:camera:astraS-depth" -pd
+java -jar target/nectar-configuration-loader-0.1-SNAPSHOT-jar-with-dependencies.jar -f /data/calibration-AstraS-rgb.yaml -o "calibration:camera:astraS-rgb" -pd
+
