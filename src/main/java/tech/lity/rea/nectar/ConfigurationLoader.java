@@ -55,7 +55,7 @@ public class ConfigurationLoader {
     static public void main(String[] passedArgs) {
 
         Options options = new Options();
-        options.addOption("f", "file", true, "filename.");
+        options.addRequiredOption("f", "file", true, "filename.");
         options.addOption("p", "path", true, "Optionnal path.");
         options.addOption("m", "matrix", false, "Activate when the file is a matrix.");
         options.addOption("pd", "projective-device", false, "Activate when the file is projective device.");
@@ -63,7 +63,7 @@ public class ConfigurationLoader {
         // Generic options
         options.addOption("v", "verbose", false, "Verbose activated.");
         options.addOption("s", "silent", false, "Silent activated.");
-        options.addOption("o", "output", true, "Output key.");
+        options.addRequiredOption("o", "output", true, "Output key.");
         options.addOption("rp", "redisport", true, "Redis port, default is: " + REDIS_PORT);
         options.addOption("rh", "redishost", true, "Redis host, default is: " + REDIS_HOST);
 
