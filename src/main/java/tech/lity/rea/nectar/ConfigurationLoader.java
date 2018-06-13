@@ -1,22 +1,17 @@
 package tech.lity.rea.nectar;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.xml.sax.SAXException;
 import processing.core.*;
-import processing.data.JSONArray;
 import processing.data.JSONObject;
-import processing.data.XML;
 import redis.clients.jedis.Jedis;
 import tech.lity.rea.nectar.calibration.files.HomographyCalibration;
 
@@ -155,39 +150,6 @@ public class ConfigurationLoader {
                         .getName()).log(Level.SEVERE, null, ex);
             }
         }
-
-//        try {
-//            Path currentRelativePath = Paths.get("");
-//            String path = currentRelativePath.toAbsolutePath().toString();
-//
-//            PMatrix3D camProjExtrinsics = loadCalibration(path + "/data/camProjExtrinsics.xml");
-//            camProjExtrinsics.print();
-//
-//            // CamProj Homoraphy
-//            PMatrix3D camProjHomography = loadCalibration(path + "/data/camProjHomography.xml");
-//            JSONObject cp = new JSONObject();
-//            cp.setJSONArray("matrix", ProjectiveDeviceP.PMatrixToJSON(camProjHomography));
-//            redis.set(defaultName + ":cam_proj_homograhy", cp.toString());
-//
-//            // COLOR
-//            ProjectiveDeviceP pdp = ProjectiveDeviceP.loadCameraDevice(path + "/data/calibration-AstraS-rgb.yaml");
-//            redis.set(OUTPUT_PREFIX + defaultHost + ":calibration:astra-s-rgb", pdp.toJSON().toString());
-//            cameraDevice = pdp;
-//
-//            // DEPTH
-//            pdp = ProjectiveDeviceP.loadCameraDevice(path + "/data/calibration-AstraS-depth.yaml");
-//            redis.set(OUTPUT_PREFIX + defaultHost + ":calibration:astra-s-depth", pdp.toJSON().toString());
-//
-//            /// Extrinsics
-//            PMatrix3D extrinsics = loadCalibration(path + "/data/camProjExtrinsics.xml");
-//            JSONObject cp1 = new JSONObject();
-//            cp1.setJSONArray("matrix", ProjectiveDeviceP.PMatrixToJSON(extrinsics));
-//            redis.set(OUTPUT_PREFIX + defaultHost + ":calibration:astra-extrinsics", cp.toString());
-//
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//            Logger.getLogger(FileLoader.class.getName()).log(Level.SEVERE, null, ex);
-//        }
     }
 
     public static PMatrix3D loadCalibration(String fileName) {
@@ -210,15 +172,14 @@ public class ConfigurationLoader {
 
     private static void connectRedis() {
         try {
-            redis = new Jedis("127.0.0.1", 6379);
+            redis = new Jedis(host, Integer.parseInt(port));
             if (redis == null) {
                 throw new Exception("Cannot connect to server. ");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(0);
+            System.exit(-1);
         }
-        // redis.auth("156;2Asatu:AUI?S2T51235AUEAIU");
     }
 
 }
