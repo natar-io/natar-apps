@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import processing.core.*;
@@ -33,6 +34,17 @@ public class ConfigurationLoader {
     static String host = REDIS_HOST;
     static String port = REDIS_PORT;
 
+    static Options options;
+
+    public static void die(String why, boolean usage) {
+        if (usage) {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("PoseEstimator", options);
+        }
+        System.out.println(why);
+        System.exit(-1);
+    }
+
     public static void die(String why) {
         System.out.println(why);
         System.exit(-1);
@@ -54,11 +66,12 @@ public class ConfigurationLoader {
 
     static public void main(String[] passedArgs) {
 
-        Options options = new Options();
+        options = new Options();
         options.addRequiredOption("f", "file", true, "filename.");
         options.addOption("p", "path", true, "Optionnal path.");
         options.addOption("m", "matrix", false, "Activate when the file is a matrix.");
         options.addOption("pd", "projective-device", false, "Activate when the file is projective device.");
+        options.addOption("pr", "projector", false, "Load a projector configuration, instead of camera.");
 
         // Generic options
         options.addOption("v", "verbose", false, "Verbose activated.");
@@ -67,11 +80,13 @@ public class ConfigurationLoader {
         options.addOption("rp", "redisport", true, "Redis port, default is: " + REDIS_PORT);
         options.addOption("rh", "redishost", true, "Redis host, default is: " + REDIS_HOST);
 
+        options.addOption("h", "help", false, "print this help.");
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd;
 
         boolean isMatrix = false;
         boolean isProjectiveDevice = false;
+        boolean isProjector = false;
 
         try {
             cmd = parser.parse(options, passedArgs);
@@ -85,6 +100,10 @@ public class ConfigurationLoader {
                 output = cmd.getOptionValue("o");
             } else {
                 die("Please set an output key with -o or --output ");
+            }
+
+            if (cmd.hasOption("h")) {
+                die("", true);
             }
 
             if (cmd.hasOption("p")) {
@@ -102,6 +121,9 @@ public class ConfigurationLoader {
             if (cmd.hasOption("pd")) {
                 isProjectiveDevice = true;
             }
+            if (cmd.hasOption("pr")) {
+                isProjector = true;
+            }
             if (cmd.hasOption("rh")) {
                 host = cmd.getOptionValue("rh");
             }
@@ -115,8 +137,7 @@ public class ConfigurationLoader {
             }
 
         } catch (ParseException ex) {
-            Logger.getLogger(ConfigurationLoader.class
-                    .getName()).log(Level.SEVERE, null, ex);
+            die(ex.toString(), true);
         }
 
         connectRedis();
@@ -140,7 +161,11 @@ public class ConfigurationLoader {
         if (isProjectiveDevice) {
             ProjectiveDeviceP pdp;
             try {
-                pdp = ProjectiveDeviceP.loadCameraDevice(path + "/" + fileName);
+                if (isProjector) {
+                    pdp = ProjectiveDeviceP.loadProjectorDevice(path + "/" + fileName);
+                } else {
+                    pdp = ProjectiveDeviceP.loadCameraDevice(path + "/" + fileName);
+                }
                 redis.set(output, pdp.toJSON().toString());
 
                 log(fileName + " loaded to " + output, pdp.toJSON().toString());
