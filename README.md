@@ -18,5 +18,7 @@ java -jar target/nectar-configuration-loader-0.1-SNAPSHOT-jar-with-dependencies.
 
 java -jar target/nectar-configuration-loader-0.1-SNAPSHOT-jar-with-dependencies.jar -f data/camProjExtrinsics.xml -m -o projector0:extrinsics
 
+java -jar target/nectar-configuration-loader-0.1-SNAPSHOT-jar-with-dependencies.jar -f data/tablePosition.xml -m -o scene:tablePosition
+
 
 ```
