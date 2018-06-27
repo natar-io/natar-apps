@@ -12,6 +12,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import processing.core.*;
+import processing.data.JSONArray;
 import processing.data.JSONObject;
 import redis.clients.jedis.Jedis;
 import tech.lity.rea.nectar.calibration.files.HomographyCalibration;
@@ -68,7 +69,9 @@ public class ConfigurationLoader {
 
         options = new Options();
         options.addRequiredOption("f", "file", true, "filename.");
+
         options.addOption("p", "path", true, "Optionnal path.");
+        options.addOption("i", "invert-matrix", false, "Invert matrix.");
         options.addOption("m", "matrix", false, "Activate when the file is a matrix.");
         options.addOption("pd", "projective-device", false, "Activate when the file is projective device.");
         options.addOption("pr", "projector", false, "Load a projector configuration, instead of camera.");
@@ -85,6 +88,7 @@ public class ConfigurationLoader {
         CommandLine cmd;
 
         boolean isMatrix = false;
+        boolean isMatrixInverted = false;
         boolean isProjectiveDevice = false;
         boolean isProjector = false;
 
@@ -111,6 +115,9 @@ public class ConfigurationLoader {
             }
             if (cmd.hasOption("m")) {
                 isMatrix = true;
+            }
+            if (cmd.hasOption("i")) {
+                isMatrixInverted = true;
             }
             if (cmd.hasOption("v")) {
                 isVerbose = true;
@@ -151,11 +158,16 @@ public class ConfigurationLoader {
             if (mat == null) {
                 die("Cannot read the matrix from: " + fileName);
             }
+            if (isMatrixInverted) {
+                mat.invert();
+            }
             JSONObject cp = new JSONObject();
-            cp.setJSONArray(output, ProjectiveDeviceP.PMatrixToJSON(mat));
+            cp.setJSONArray("matrix", ProjectiveDeviceP.PMatrixToJSON(mat));
             redis.set(output, cp.toString());
 
-            log(fileName + " loaded to " + output, cp.toString());
+//            JSONArray matJ = ProjectiveDeviceP.PMatrixToJSON(mat);
+//            redis.set(output, mat.toString());
+//            log(fileName + " loaded to " + output, matJ.toString());
         }
 
         if (isProjectiveDevice) {
