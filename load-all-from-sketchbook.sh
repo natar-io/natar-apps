@@ -15,4 +15,4 @@ java -jar $prog -p / -f $data/projector.yaml -o projector0:calibration -pd -pr
 java -jar $prog -p / -f $data/camProjExtrinsics.xml -o projector0:extrinsics -m -i
 
 #Table
-java -jar $prog -p / -f $data/tablePosition.xml -m -o camera0:table:position
+java -jar $prog -p / -f $data/tablePosition.xml -m -o table:extrinsics
