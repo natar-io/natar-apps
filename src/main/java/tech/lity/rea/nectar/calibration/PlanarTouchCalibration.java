@@ -17,11 +17,18 @@
  * Public License along with this library; If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package tech.lity.rea.nectar.calibration.files;
+package tech.lity.rea.nectar.calibration;
 
-import tech.lity.rea.nectar.calibration.files.Calibration;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
+import tech.lity.rea.nectar.calibration.Calibration;
 import processing.core.PApplet;
 import processing.data.XML;
+import redis.clients.jedis.Jedis;
+import tech.lity.rea.nectar.calibration.Calibration;
 import toxi.geom.Vec3D;
 
 /**
@@ -168,6 +175,22 @@ public class PlanarTouchCalibration extends Calibration {
         XML root = parent.loadXML(fileName);
         XML planarTouchCalibNode = root.getChild(PLANAR_TOUCH_CALIBRATION_XML_NAME);
         getFrom(planarTouchCalibNode);
+    }
+
+    public void loadFrom(String data) {
+        XML root;
+        try {
+            root = XML.parse(data);
+            XML planarTouchCalibNode = root.getChild(PLANAR_TOUCH_CALIBRATION_XML_NAME);
+            getFrom(planarTouchCalibNode);
+            
+        } catch (IOException ex) {
+            Logger.getLogger(PlanarTouchCalibration.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(PlanarTouchCalibration.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SAXException ex) {
+            Logger.getLogger(PlanarTouchCalibration.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public float getMaximumDistance() {

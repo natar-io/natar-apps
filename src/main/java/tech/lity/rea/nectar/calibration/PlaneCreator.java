@@ -19,7 +19,7 @@
  */
 package tech.lity.rea.nectar.calibration;
 
-import tech.lity.rea.nectar.calibration.files.PlaneCalibration;
+import tech.lity.rea.nectar.calibration.PlaneCalibration;
 import toxi.geom.Plane;
 import toxi.geom.Triangle3D;
 import toxi.geom.Vec3D;

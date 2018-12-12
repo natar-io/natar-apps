@@ -17,9 +17,9 @@
  * Public License along with this library; If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package tech.lity.rea.nectar.calibration.files;
+package tech.lity.rea.nectar.calibration;
 
-import tech.lity.rea.nectar.calibration.files.Calibration;
+import tech.lity.rea.nectar.calibration.Calibration;
 import processing.core.PApplet;
 import processing.data.XML;
 

@@ -17,7 +17,7 @@
  * Public License along with this library; If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package tech.lity.rea.nectar.calibration.files;
+package tech.lity.rea.nectar.calibration;
 
 import java.io.FileNotFoundException;
 import processing.core.PApplet;

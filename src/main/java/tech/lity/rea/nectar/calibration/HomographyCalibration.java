@@ -17,12 +17,9 @@
  * Public License along with this library; If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package tech.lity.rea.nectar.calibration.files;
+package tech.lity.rea.nectar.calibration;
 
 import java.io.File;
-import tech.lity.rea.nectar.calibration.HomographyCreator;
-import tech.lity.rea.nectar.calibration.files.Calibration;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
