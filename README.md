@@ -1,7 +1,8 @@
-## Nectar Pose estimator.
+## Nectar Java applications
+
+Applications bundled with dependencies.
 
 
-For now it loads configurations into redis for tests.
 
 ## How to use
 
