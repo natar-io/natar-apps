@@ -26,7 +26,7 @@ import tech.lity.rea.nectar.tracking.MarkerBoard;
 import tech.lity.rea.nectar.tracking.MarkerBoardFactory;
 
 /**
- *
+ *  TODO: Extend NectarApplication
  * @author Jeremy Laviole, <laviole@rea.lity.tech>
  */
 @SuppressWarnings("serial")

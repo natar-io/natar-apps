@@ -10,7 +10,7 @@ import redis.clients.jedis.Jedis;
  * @author Jeremy Laviole, <laviole@rea.lity.tech>
  */
 @SuppressWarnings("serial")
-public class NectarApplication {
+public abstract class NectarApplication {
 
     public static final String REDIS_PORT = "6379";
     public static final String REDIS_HOST = "localhost";
