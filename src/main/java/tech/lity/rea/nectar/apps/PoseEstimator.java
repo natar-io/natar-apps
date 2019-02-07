@@ -1,4 +1,4 @@
-package tech.lity.rea.nectar;
+package tech.lity.rea.nectar.apps;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

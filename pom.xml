@@ -46,7 +46,6 @@
     </repositories>
     <dependencies>
 
-        <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
         <dependency>
             <groupId>commons-cli</groupId>
             <artifactId>commons-cli</artifactId>
@@ -64,13 +63,7 @@
             <artifactId>nectar-configuration</artifactId>
             <version>0.1-SNAPSHOT</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.clojars.hozumi</groupId>
-            <artifactId>toxiclibscore</artifactId>
-            <version>0022</version>
-        </dependency>
-   
+     
     </dependencies>
     <build>
         <plugins>

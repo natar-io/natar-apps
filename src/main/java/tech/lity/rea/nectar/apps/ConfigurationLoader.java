@@ -1,4 +1,4 @@
-package tech.lity.rea.nectar;
+package tech.lity.rea.nectar.apps;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +24,9 @@ import tech.lity.rea.nectar.calibration.HomographyCalibration;
 import tech.lity.rea.nectar.tracking.MarkerBoardSvg;
 
 /**
- *
+ * Load a configuration file: Projective Device, 3D Transformation (matrix), 
+ * and markerboards into Redis for Nectar. 
+ * 
  * @author Jeremy Laviole, <laviole@rea.lity.tech>
  */
 @SuppressWarnings("serial")
