@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>tech.lity.rea</groupId>
     <artifactId>nectar-apps</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -55,13 +55,7 @@
         <dependency>
             <groupId>tech.lity.rea</groupId>
             <artifactId>nectar-core</artifactId>
-            <version>0.1-SNAPSHOT</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>tech.lity.rea</groupId>
-            <artifactId>nectar-configuration</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
         </dependency>
      
     </dependencies>
