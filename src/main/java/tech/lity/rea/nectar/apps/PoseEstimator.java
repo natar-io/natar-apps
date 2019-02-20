@@ -2,14 +2,16 @@ package tech.lity.rea.nectar.apps;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import processing.core.*;
@@ -19,18 +21,20 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 import tech.lity.rea.javacvprocessing.ProjectiveDeviceP;
 import static tech.lity.rea.javacvprocessing.ProjectiveDeviceP.PMatrixToJSON;
+import static tech.lity.rea.nectar.apps.NectarApplication.isVerbose;
 import tech.lity.rea.nectar.markers.MarkerList;
-import tech.lity.rea.nectar.camera.Camera;
 import tech.lity.rea.nectar.camera.CameraNectar;
 import tech.lity.rea.nectar.tracking.MarkerBoard;
 import tech.lity.rea.nectar.tracking.MarkerBoardFactory;
+import tech.lity.rea.nectar.tracking.MarkerBoardSvgNectar;
 
 /**
- *  TODO: Extend NectarApplication
+ * TODO: Extend NectarApplication
+ *
  * @author Jeremy Laviole, <laviole@rea.lity.tech>
  */
 @SuppressWarnings("serial")
-public class PoseEstimator {
+public class PoseEstimator extends NectarApplication {
 
     static Jedis redis;
     static Jedis redisSend;
@@ -39,66 +43,25 @@ public class PoseEstimator {
     public static final String OUTPUT_PREFIX = "nectar:";
     public static final String OUTPUT_PREFIX2 = ":camera-server:camera";
 
-    public static final String REDIS_PORT = "6379";
-    public static final String REDIS_HOST = "localhost";
-
     static private String pathName = "";
     static private String cameraFileName = "";
     static private String cameraName = "";
     static private String markerFileName = "";
     static private String input = "marker";
     static private String output = "pose";
-    static private String host = REDIS_HOST;
-    static private String port = REDIS_PORT;
-    static private boolean isUnique = false;
     private static boolean isStreamSet = false;
-
-    static String defaultHost = "jiii-mi";
-    static String defaultName = OUTPUT_PREFIX + defaultHost + OUTPUT_PREFIX2 + "#0";
 
     static ProjectiveDeviceP cameraDevice;
     static MarkerList markersFromSVG;
 
     static private CameraNectar cam;
 
-    // TODO: Get the camera calibration from Redis.
-    public static void die(String why) {
-        die(why, false);
-    }
-
-    public static void die(String why, boolean usage) {
-        if (usage) {
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp("PoseEstimator", options);
-        }
-        System.out.println(why);
-        System.exit(-1);
-    }
-
-    static boolean isVerbose = false;
-    static boolean isSilent = false;
-
-    public static void log(String normal, String verbose) {
-
-        if (isSilent) {
-            return;
-        }
-        if (normal != null) {
-            System.out.println(normal);
-        }
-        if (isVerbose) {
-            System.out.println(verbose);
-        }
-    }
-    static Options options = new Options();
     static MarkerBoard board;
 
-    static public void main(String[] passedArgs) {
-
-        options = new Options();
+    static protected void addAppOptions(Options options) {
         options.addRequiredOption("i", "input", true, "Camera input key .");
-        options.addRequiredOption("cc", "camera-configuration", true, "Camera calibration file.");
-        options.addRequiredOption("mc", "marker-configuration", true, "Marker configuration file.");
+//        options.addRequiredOption("cc", "camera-configuration", true, "Camera calibration file.");
+//        options.addRequiredOption("mc", "marker-configuration", true, "Marker configuration file.");
         options.addOption("p", "path", true, "Optionnal path.");
 
         options.addOption("s", "stream", false, " stream mode (PUBLISH).");
@@ -106,112 +69,154 @@ public class PoseEstimator {
         options.addOption("u", "unique", false, "Unique mode, run only once and use get/set instead of pub/sub");
 
         // Generic options
-        options.addOption("h", "help", false, "print this help.");
-        options.addOption("v", "verbose", false, "Verbose activated.");
-        options.addOption("s", "silent", false, "Silent activated.");
-        options.addOption("u", "unique", false, "Unique mode, run only once and use get/set instead of pub/sub");
-        options.addRequiredOption("o", "output", true, "Output key.");
-        options.addOption("rp", "redisport", true, "Redis port, default is: " + REDIS_PORT);
-        options.addOption("rh", "redishost", true, "Redis host, default is: " + REDIS_HOST);
+//        options.addRequiredOption("o", "output", true, "Output key.");
+    }
+
+    static protected void parseOptions(CommandLine cmd) {
+        if (cmd.hasOption("i")) {
+            cameraName = cmd.getOptionValue("i");
+        }
+
+//        if (cmd.hasOption("cc")) {
+//            cameraFileName = cmd.getOptionValue("cc");
+//        }
+//        if (cmd.hasOption("mc")) {
+//            markerFileName = cmd.getOptionValue("mc");
+//        }
+//        if (cmd.hasOption("o")) {
+//            output = cmd.getOptionValue("o");
+//        } else {
+//            die("Please set an output key with -o or --output ", true);
+//        }
+        if (cmd.hasOption("p")) {
+            pathName = cmd.getOptionValue("p");
+        }
+
+        if (cmd.hasOption("sg")) {
+            isStreamSet = true;
+        }
+    }
+
+    static public void main(String[] passedArgs) {
+
+        options = new Options();
+        addDefaultOptions(options);
+        addAppOptions(options);
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd;
 
-        // -u -i markers -cc data/calibration-AstraS-rgb.yaml -mc data/A4-default.svg -o pose
         try {
             cmd = parser.parse(options, passedArgs);
-            if (cmd.hasOption("i")) {
-                cameraName = cmd.getOptionValue("i");
-            }
-
-            if (cmd.hasOption("cc")) {
-                cameraFileName = cmd.getOptionValue("cc");
-            }
-            if (cmd.hasOption("mc")) {
-                markerFileName = cmd.getOptionValue("mc");
-            }
-
-            if (cmd.hasOption("h")) {
-                die("", true);
-            }
-
-            if (cmd.hasOption("o")) {
-                output = cmd.getOptionValue("o");
-            } else {
-                die("Please set an output key with -o or --output ", true);
-            }
-
-            if (cmd.hasOption("p")) {
-                pathName = cmd.getOptionValue("p");
-            }
-
-            if (cmd.hasOption("sg")) {
-                isStreamSet = true;
-            }
-            if (cmd.hasOption("u")) {
-                isUnique = true;
-            }
-            if (cmd.hasOption("v")) {
-                isVerbose = true;
-            }
-            if (cmd.hasOption("s")) {
-                isSilent = true;
-            }
-            if (cmd.hasOption("rh")) {
-                host = cmd.getOptionValue("rh");
-            }
-            if (cmd.hasOption("rp")) {
-                port = cmd.getOptionValue("rp");
-            }
+            parseDefaultOptions(cmd);
+            parseOptions(cmd);
         } catch (ParseException ex) {
             die(ex.toString(), true);
         }
-        connectRedis();
-        
+        redis = connectRedis();
+        redisSend = connectRedis();
+
+        startEstimator();
+        System.out.println("Waiting for something.");
+    }
+
+    static protected void startEstimator() {
         try {
             Path currentRelativePath = Paths.get(pathName);
             String path = currentRelativePath.toAbsolutePath().toString();
             // Only rgb camera can track markers for now.
             cam = new CameraNectar(cameraName);
-            cam.setCalibration(path + "/" + cameraFileName);
-            
+            cam.setUseColor(true);
+            cam.actAsColorCamera();
+//            cam.setCalibration(path + "/" + cameraFileName);
+
             cam.DEFAULT_REDIS_HOST = host;
             cam.DEFAULT_REDIS_PORT = Integer.parseInt(port);
-            
+
             if (isStreamSet) {
                 cam.setGetMode(isStreamSet);
-            }           
+            }
             cam.start();
+
+            cam.updateCalibrations(); // Load calibration from Redis.
 //            board = MarkerBoardFactory.create(path + "/" + markerFileName);
-            board = MarkerBoardFactory.create(path + "/" + markerFileName);
+
+            markerboardNames = redis.smembers(cameraName + ":markerboards");
+            boards = new HashMap<String, MarkerBoard>();
+            for (String mbName : markerboardNames) {
+
+                // Load board from file system if contains a '.' (dot) !
+                if (mbName.contains(".")) {
+                    MarkerBoard board = MarkerBoardFactory.create(path + "/" + mbName);
+                    boards.put(mbName, board);
+
+                    board.addTracker(null, cam.getColorCamera());
+                } else {
+                    MarkerBoard board = new MarkerBoardSvgNectar(mbName, cam);
+                    boards.put(mbName, board);
+
+                    board.addTracker(null, cam.getColorCamera());
+                }
+            }
+
             cam.addObserver(new ImageObserver());
-//            cam.track(board);
+
         } catch (Exception ex) {
             ex.printStackTrace();
             Logger.getLogger(PoseEstimator.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println("Waiting for something.");
     }
+
+    private static Set<String> markerboardNames;
+    private static HashMap<String, MarkerBoard> boards;
 
     static class ImageObserver implements Observer {
 
         @Override
         public void update(Observable o, Object o1) {
-            board.updateLocation(cam, cam.getIplImage(), null);
-            PMatrix3D position = board.getPosition(cam);
 
-            JSONObject matrix = new JSONObject();
-            JSONArray poseJson = PMatrixToJSON(position);
+            for (HashMap.Entry<String, MarkerBoard> entry : boards.entrySet()) {
+                String key = entry.getKey();
+                MarkerBoard board = entry.getValue();
 
-            matrix.setJSONArray("matrix", poseJson);
-            if (isVerbose) {
-                position.print();
+                String output = cameraName + ":markerboards:" + key;
+
+                board.updateLocation(cam, cam.getIplImage(), null);
+
+                PMatrix3D position = board.getPosition(cam);
+                JSONObject matrix = new JSONObject();
+                JSONArray poseJson = PMatrixToJSON(position);
+
+                matrix.setJSONArray("matrix", poseJson);
+                if (isVerbose) {
+                    position.print();
+                }
+                if(!isSilent){
+                    System.out.println("Set:/publish to: " + output);
+                }
+                if (isStreamSet) {
+                    redisSend.set(output, matrix.toString());
+                } else {
+                    redisSend.publish(output, matrix.toString());
+                }
+
             }
-            if (isStreamSet) {
-                redisSend.set(output, matrix.toString());
-            } else {
-                redisSend.publish(output, matrix.toString());
-            }
+
+//            board.updateLocation(cam, cam.getIplImage(), null);
+//            PMatrix3D position = board.getPosition(cam);
+//
+//            JSONObject matrix = new JSONObject();
+//            JSONArray poseJson = PMatrixToJSON(position);
+//
+//            matrix.setJSONArray("matrix", poseJson);
+//            if (isVerbose) {
+//                position.print();
+//            }
+//            if (isStreamSet) {
+//                redisSend.set(output, matrix.toString());
+//            } else {
+//                redisSend.publish(output, matrix.toString());
+//            }
 //            Markerboard update... send pose...
         }
 
@@ -261,7 +266,6 @@ public class PoseEstimator {
         }
 
         public void onPUnsubscribe(String pattern, int subscribedChannels) {
-
         }
 
         @Override
@@ -270,20 +274,4 @@ public class PoseEstimator {
         }
     }
 
-    private static void connectRedis() {
-        try {
-            redis = new Jedis(host, Integer.parseInt(port));
-            redisSend = new Jedis(host, Integer.parseInt(port));
-            if (redis == null) {
-                throw new Exception("Cannot connect to server. ");
-            }
-            else {
-                System.out.println("PoseEstimator - Connected to Redis.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
-        }
-        // redis.auth("156;2Asatu:AUI?S2T51235AUEAIU");
-    }
 }

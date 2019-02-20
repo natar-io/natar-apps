@@ -5,6 +5,10 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import redis.clients.jedis.Jedis;
 
+
+// TODO Load deps from classpath file
+// https://stackoverflow.com/questions/1464291/how-to-really-read-text-file-from-classpath-in-java
+
 /**
  *
  * @author Jeremy Laviole, <laviole@rea.lity.tech>
@@ -31,7 +35,6 @@ public abstract class NectarApplication {
         options.addOption("u", "unique", false, "Unique mode, run only once.");
         options.addOption("rp", "redisport", true, "Redis port, default is: " + REDIS_PORT);
         options.addOption("rh", "redishost", true, "Redis host, default is: " + REDIS_HOST);
-
     }
 
     protected static void parseDefaultOptions(CommandLine cmd) {

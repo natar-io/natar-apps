@@ -24,9 +24,9 @@ import tech.lity.rea.nectar.calibration.HomographyCalibration;
 import tech.lity.rea.nectar.tracking.MarkerBoardSvg;
 
 /**
- * Load a configuration file: Projective Device, 3D Transformation (matrix), 
- * and markerboards into Redis for Nectar. 
- * 
+ * Load a configuration file: Projective Device, 3D Transformation (matrix), and
+ * markerboards into Redis for Nectar.
+ *
  * @author Jeremy Laviole, <laviole@rea.lity.tech>
  */
 @SuppressWarnings("serial")
@@ -128,11 +128,11 @@ public class ConfigurationLoader extends NectarApplication {
             if (!(isMatrix || isProjectiveDevice || isMarkerboard || isMarkerboardXML)) {
                 die("Please specifiy the type of file: matrix, markerboard, or projective device.");
             }
-            
-            int s = (isMatrix ? 1:0) +
-                    (isProjectiveDevice? 1:0) + 
-                    (isMarkerboardXML? 1:0) + 
-                    (isMarkerboard? 1:0);
+
+            int s = (isMatrix ? 1 : 0)
+                    + (isProjectiveDevice ? 1 : 0)
+                    + (isMarkerboardXML ? 1 : 0)
+                    + (isMarkerboard ? 1 : 0);
             if (s > 1) {
                 die("Please specifiy the type of file: matrix, markerboard or projective device. It can be only one.");
             }
@@ -162,17 +162,18 @@ public class ConfigurationLoader extends NectarApplication {
     private static void loadMarkerboard() {
         MarkerBoardSvg markerboard = new MarkerBoardSvg(path + "/" + fileName, 200, 200);
         String markers = markerboard.getMarkerList().toJSON().toString();
-        output = "markerboards:" + output; 
+        output = "markerboards:" + output;
         redis.set(output, markers);
         redis.sadd("markerboards", output);
         log(fileName + " loaded to " + output, markers);
-
     }
+
     private static void loadMarkerboardXML() {
         try {
             XML xml;
-            xml = new XML(new File(path+  "/" + fileName));
+            xml = new XML(new File(path + "/" + fileName));
             String markers = xml.toString();
+            output = "markerboards:" + output;
             redis.set(output, markers);
             log(fileName + " -XML- loaded to " + output, markers);
         } catch (IOException ex) {
