@@ -32,6 +32,7 @@ public class MultiPoseEstimator extends NectarApplication {
     static private Jedis redis;
 
     static private String cameraName = "";
+    static private boolean noFiltering = false;
 
     static ProjectiveDeviceP cameraDevice;
     static MarkerList markersFromSVG;
@@ -70,11 +71,14 @@ public class MultiPoseEstimator extends NectarApplication {
 //                System.out.println("Key: " + key);
                 String name = key.split("markerboards:")[1];
 //                MarkerBoard markerboard = new MarkerBoardSvg(
-                JSONArray markersJson = JSONArray.parse(redis.get(key));
+                JSONArray markersJson = JSONArray.parse(redis.get(key));  // TODO: check that the get succeded
                 MarkerList markers = MarkerList.createFromJSON(markersJson);
 
                 MarkerBoardSvg board = new MarkerBoardSvg(name, markers);
                 board.addTracker(null, cam.getPublicCamera());
+                if(noFiltering){
+                    board.removeFiltering(cam);
+                }
                 markerboards.add(board);
             }
             System.out.println("ProjectiveDevice: " + cam.getProjectiveDevice());
@@ -120,7 +124,8 @@ public class MultiPoseEstimator extends NectarApplication {
         addDefaultOptions(options);
 
         options.addRequiredOption("i", "input", true, "Camera input key .");
-
+        options.addOption("rf", "remove-filtering", false, "Remove the filtering.");
+        
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd;
 
@@ -132,6 +137,8 @@ public class MultiPoseEstimator extends NectarApplication {
             if (cmd.hasOption("i")) {
                 cameraName = cmd.getOptionValue("i");
             }
+
+            noFiltering = cmd.hasOption("rf");
 
         } catch (ParseException ex) {
             die(ex.toString(), true);
