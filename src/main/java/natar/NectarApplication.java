@@ -1,4 +1,4 @@
-package tech.lity.rea.nectar.apps;
+package natar;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
