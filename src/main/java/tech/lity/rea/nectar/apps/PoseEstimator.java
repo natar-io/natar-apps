@@ -1,4 +1,4 @@
-package natar;
+package tech.lity.rea.nectar.apps;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,7 +21,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 import tech.lity.rea.javacvprocessing.ProjectiveDeviceP;
 import static tech.lity.rea.javacvprocessing.ProjectiveDeviceP.PMatrixToJSON;
-import static natar.NectarApplication.isVerbose;
+import static tech.lity.rea.nectar.apps.NectarApplication.isVerbose;
 import tech.lity.rea.nectar.markers.MarkerList;
 import tech.lity.rea.nectar.camera.CameraNectar;
 import tech.lity.rea.nectar.tracking.MarkerBoard;

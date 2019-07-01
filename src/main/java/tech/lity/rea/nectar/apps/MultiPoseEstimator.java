@@ -1,4 +1,4 @@
-package natar;
+package tech.lity.rea.nectar.apps;
 
 import java.util.ArrayList;
 import java.util.Observable;
