@@ -21,6 +21,7 @@ import tech.lity.rea.nectar.camera.CameraNectar;
 import tech.lity.rea.nectar.markers.MarkerList;
 import tech.lity.rea.nectar.tracking.MarkerBoard;
 import tech.lity.rea.nectar.tracking.MarkerBoardSvg;
+import tech.lity.rea.nectar.utils.NectarApplication;
 
 /**
  *

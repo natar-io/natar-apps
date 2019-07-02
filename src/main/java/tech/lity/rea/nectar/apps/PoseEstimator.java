@@ -21,12 +21,13 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 import tech.lity.rea.javacvprocessing.ProjectiveDeviceP;
 import static tech.lity.rea.javacvprocessing.ProjectiveDeviceP.PMatrixToJSON;
-import static tech.lity.rea.nectar.apps.NectarApplication.isVerbose;
 import tech.lity.rea.nectar.markers.MarkerList;
 import tech.lity.rea.nectar.camera.CameraNectar;
+import tech.lity.rea.nectar.camera.RedisClientImpl;
 import tech.lity.rea.nectar.tracking.MarkerBoard;
 import tech.lity.rea.nectar.tracking.MarkerBoardFactory;
 import tech.lity.rea.nectar.tracking.MarkerBoardSvgNectar;
+import tech.lity.rea.nectar.utils.NectarApplication;
 
 /**
  * TODO: Extend NectarApplication
@@ -132,6 +133,9 @@ public class PoseEstimator extends NectarApplication {
 
             cam.DEFAULT_REDIS_HOST = host;
             cam.DEFAULT_REDIS_PORT = Integer.parseInt(port);
+            
+            RedisClientImpl.getMainConnection().setRedisHost(host);
+            RedisClientImpl.getMainConnection().setRedisPort(Integer.parseInt(port));
 
             if (isStreamSet) {
                 cam.setGetMode(isStreamSet);
@@ -152,7 +156,7 @@ public class PoseEstimator extends NectarApplication {
 
                     board.addTracker(null, cam.getColorCamera());
                 } else {
-                    MarkerBoard board = new MarkerBoardSvgNectar(mbName, cam);
+                    MarkerBoard board = new MarkerBoardSvgNectar(mbName);
                     boards.put(mbName, board);
 
                     board.addTracker(null, cam.getColorCamera());

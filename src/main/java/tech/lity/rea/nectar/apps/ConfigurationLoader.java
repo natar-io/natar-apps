@@ -22,6 +22,7 @@ import redis.clients.jedis.Jedis;
 import tech.lity.rea.javacvprocessing.ProjectiveDeviceP;
 import tech.lity.rea.nectar.calibration.HomographyCalibration;
 import tech.lity.rea.nectar.tracking.MarkerBoardSvg;
+import tech.lity.rea.nectar.utils.NectarApplication;
 
 /**
  * Load a configuration file: Projective Device, 3D Transformation (matrix), and
