@@ -142,7 +142,7 @@ public class PoseEstimator extends NectarApplication {
             }
             cam.start();
 
-            cam.updateCalibrations(); // Load calibration from Redis.
+            cam.loadCalibrations(); // Load calibration from Redis.
 //            board = MarkerBoardFactory.create(path + "/" + markerFileName);
 
             markerboardNames = redis.smembers(cameraName + ":markerboards");
@@ -183,6 +183,8 @@ public class PoseEstimator extends NectarApplication {
                 String key = entry.getKey();
                 MarkerBoard board = entry.getValue();
 
+                
+                // USE JSON or XML ???
                 String output = cameraName + ":markerboards:" + key;
 
                 board.updateLocation(cam, cam.getIplImage(), null);

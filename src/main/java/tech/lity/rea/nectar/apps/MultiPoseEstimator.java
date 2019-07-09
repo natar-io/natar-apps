@@ -18,9 +18,12 @@ import redis.clients.jedis.Jedis;
 import tech.lity.rea.javacvprocessing.ProjectiveDeviceP;
 import static tech.lity.rea.javacvprocessing.ProjectiveDeviceP.PMatrixToJSON;
 import tech.lity.rea.nectar.camera.CameraNectar;
+import tech.lity.rea.nectar.camera.RedisClient;
+import tech.lity.rea.nectar.camera.RedisClientImpl;
 import tech.lity.rea.nectar.markers.MarkerList;
 import tech.lity.rea.nectar.tracking.MarkerBoard;
 import tech.lity.rea.nectar.tracking.MarkerBoardSvg;
+import tech.lity.rea.nectar.tracking.MarkerBoardSvgNectar;
 import tech.lity.rea.nectar.utils.NectarApplication;
 
 /**
@@ -40,10 +43,15 @@ public class MultiPoseEstimator extends NectarApplication {
 
     static private CameraNectar cam;
     static final private ArrayList<MarkerBoard> markerboards = new ArrayList<>();
+    private static boolean useXML = false;
 
     static public void main(String[] passedArgs) {
 
         parseCLI(passedArgs);
+
+        RedisClientImpl mainConnection = RedisClientImpl.getMainConnection();
+        mainConnection.setRedisHost(host);
+        mainConnection.setRedisPort(Integer.parseInt(port));
 
         redis = connectRedis();
         try {
@@ -58,28 +66,42 @@ public class MultiPoseEstimator extends NectarApplication {
             cam = new CameraNectar(cameraName);
             cam.setUseColor(true);
             cam.actAsColorCamera();
-            
-            cam.DEFAULT_REDIS_HOST = host;
-            cam.DEFAULT_REDIS_PORT = Integer.parseInt(port);
 
+            cam.setRedisClient(mainConnection);
             // Connect to camera
             cam.start();
 
             // Get all all markerboards... 
 //            redis.get(host)
             Set<String> boardKeys = redis.smembers("markerboards");
-            for (String key : boardKeys) {
+            for (String boardName : boardKeys) {
 //                System.out.println("Key: " + key);
-                String name = key.split("markerboards:")[1];
-//                MarkerBoard markerboard = new MarkerBoardSvg(
-                JSONArray markersJson = JSONArray.parse(redis.get(key));  // TODO: check that the get succeded
-                MarkerList markers = MarkerList.createFromJSON(markersJson);
+                MarkerBoard board;
 
-                MarkerBoardSvg board = new MarkerBoardSvg(name, markers);
-                board.addTracker(null, cam.getPublicCamera());
-                if(noFiltering){
-                    board.removeFiltering(cam);
+                if (useXML) {
+                    MarkerBoardSvgNectar boardNectar = new MarkerBoardSvgNectar(boardName);
+                    boardNectar.load(mainConnection);
+                    board = boardNectar;
+                    board.addTracker(null, cam.getPublicCamera());
+                    if (noFiltering) {
+                        board.removeFiltering(cam);
+                    }
+
+                } else {
+                    String key = "markerboards:json:" + boardName;
+                    JSONArray markersJson = JSONArray.parse(redis.get(key));  // TODO: check that the get succeeded
+                    if (markersJson == null) {
+                        System.out.println("Cannot read marker configuration: " + boardName);
+                        return;
+                    }
+                    MarkerList markers = MarkerList.createFromJSON(markersJson);
+                    board = new MarkerBoardSvg(boardName, markers);
+                    board.addTracker(null, cam.getPublicCamera());
+                    if (noFiltering) {
+                        board.removeFiltering(cam);
+                    }
                 }
+                System.out.println("Tracking: " + boardName);
                 markerboards.add(board);
             }
             System.out.println("ProjectiveDevice: " + cam.getProjectiveDevice());
@@ -88,7 +110,10 @@ public class MultiPoseEstimator extends NectarApplication {
             ex.printStackTrace();
             Logger.getLogger(MultiPoseEstimator.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println("Waiting for something.");
+        System.out.println("Waiting for images.");
+    }
+
+    private static void addCLIArgs(Options options) {
     }
 
     static class ImageObserver implements Observer {
@@ -117,16 +142,20 @@ public class MultiPoseEstimator extends NectarApplication {
         }
 
     }
-    
+
 // <editor-fold defaultstate="collapsed" desc="Command line parsing">
     static private void parseCLI(String[] passedArgs) {
+
+        addCLIArgs(options);
+        addDefaultOptions(options);
 
         options = new Options();
         addDefaultOptions(options);
 
         options.addRequiredOption("i", "input", true, "Camera input key .");
         options.addOption("rf", "remove-filtering", false, "Remove the filtering.");
-        
+        options.addOption("x", "xml", false, "Use XML source instead of JSON.");
+
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd;
 
@@ -137,6 +166,10 @@ public class MultiPoseEstimator extends NectarApplication {
 
             if (cmd.hasOption("i")) {
                 cameraName = cmd.getOptionValue("i");
+            }
+            if (cmd.hasOption("x")) {
+                useXML = true;
+                System.out.println("Using XML file, instead of JSON.");
             }
 
             noFiltering = cmd.hasOption("rf");

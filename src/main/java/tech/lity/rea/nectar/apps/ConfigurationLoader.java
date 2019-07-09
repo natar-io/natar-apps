@@ -65,9 +65,6 @@ public class ConfigurationLoader extends NectarApplication {
         if (isMarkerboard) {
             loadMarkerboard();
         }
-        if (isMarkerboardXML) {
-            loadMarkerboardXML();
-        }
 
         if (isProjectiveDevice) {
             loadProjectiveDevice();
@@ -82,7 +79,6 @@ public class ConfigurationLoader extends NectarApplication {
         options.addOption("pd", "projective-device", false, "Activate when the file is projective device.");
         options.addOption("pr", "projector", false, "Load a projector configuration, instead of camera.");
         options.addOption("mb", "markerboard", false, "Load a markerboard file.");
-        options.addOption("mbx", "markerboard-xml", false, "Load a markerboard file (XML raw).");
         options.addRequiredOption("o", "output", true, "Output key.");
     }
 
@@ -114,9 +110,7 @@ public class ConfigurationLoader extends NectarApplication {
             if (cmd.hasOption("mb")) {
                 isMarkerboard = true;
             }
-            if (cmd.hasOption("mbx")) {
-                isMarkerboardXML = true;
-            }
+
             if (cmd.hasOption("i")) {
                 isMatrixInverted = true;
             }
@@ -126,13 +120,12 @@ public class ConfigurationLoader extends NectarApplication {
             if (cmd.hasOption("pr")) {
                 isProjector = true;
             }
-            if (!(isMatrix || isProjectiveDevice || isMarkerboard || isMarkerboardXML)) {
+            if (!(isMatrix || isProjectiveDevice || isMarkerboard )) {
                 die("Please specifiy the type of file: matrix, markerboard, or projective device.");
             }
 
             int s = (isMatrix ? 1 : 0)
                     + (isProjectiveDevice ? 1 : 0)
-                    + (isMarkerboardXML ? 1 : 0)
                     + (isMarkerboard ? 1 : 0);
             if (s > 1) {
                 die("Please specifiy the type of file: matrix, markerboard or projective device. It can be only one.");
@@ -163,20 +156,18 @@ public class ConfigurationLoader extends NectarApplication {
     private static void loadMarkerboard() {
         MarkerBoardSvg markerboard = new MarkerBoardSvg(path + "/" + fileName, 200, 200);
         String markers = markerboard.getMarkerList().toJSON().toString();
-        output = "markerboards:" + output;
-        redis.set(output, markers);
+        String outputKey = "markerboards:json:" + output;
+        redis.set(outputKey, markers);
         redis.sadd("markerboards", output);
-        log(fileName + " loaded to " + output, markers);
-    }
+        log(fileName + " loaded to " + outputKey, markers);
 
-    private static void loadMarkerboardXML() {
         try {
             XML xml;
             xml = new XML(new File(path + "/" + fileName));
-            String markers = xml.toString();
-            output = "markerboards:" + output;
-            redis.set(output, markers);
-            log(fileName + " -XML- loaded to " + output, markers);
+            String markers2 = xml.toString();
+            outputKey = "markerboards:xml:" + output;
+            redis.set(outputKey, markers2);
+            log(fileName + " -XML- loaded to " + outputKey, markers);
         } catch (IOException ex) {
             Logger.getLogger(ConfigurationLoader.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParserConfigurationException ex) {
@@ -184,7 +175,6 @@ public class ConfigurationLoader extends NectarApplication {
         } catch (SAXException ex) {
             Logger.getLogger(ConfigurationLoader.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     private static void loadMatrix() {
